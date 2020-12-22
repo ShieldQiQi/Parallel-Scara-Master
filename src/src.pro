@@ -50,3 +50,5 @@ unix:include($$PWD/driver/SocketCanDriver/SocketCanDriver.pri)
 win32:include($$PWD/driver/CandleApiDriver/CandleApiDriver.pri)
 
 DISTFILES +=
+
+LIBS += -lOpengl32

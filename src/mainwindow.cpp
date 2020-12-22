@@ -126,7 +126,6 @@ MainWindow::MainWindow(QWidget *parent) :
     this->cmdStatusPanelWindow->ui->checkBox_9->setCheckState(Qt::Checked);
     this->cmdStatusPanelWindow->ui->checkBox_10->setCheckState(Qt::Checked);
     this->cmdStatusPanelWindow->ui->checkBox_11->setCheckState(Qt::Checked);
-
 }
 
 MainWindow::~MainWindow()
@@ -135,6 +134,140 @@ MainWindow::~MainWindow()
     delete traceWindow;
     delete graphWindow;
     delete cmdStatusPanelWindow;
+    delete openGLWindow;
+}
+
+void MyOpenGL::initializeGL()
+{
+    initializeOpenGLFunctions();
+
+    glEnable(GL_DEPTH_TEST);
+}
+
+void MyOpenGL::resizeGL(int w, int h)
+{
+    glViewport(0, 0, w, h);
+}
+
+void MyOpenGL::paintGL()
+{
+//    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+    glClearColor(0.3,0.3,0.3,0.5);
+    glDepthFunc(GL_LESS);
+    glEnable(GL_DEPTH_TEST);
+    glShadeModel(GL_SMOOTH);
+
+    glLoadIdentity();
+
+    glRotatef( rotate_x, 1.0, 0.0, 0.0 );
+    glRotatef( rotate_y, 0.0, 1.0, 0.0 );
+    glRotatef( rotate_z, 0.0, 0.0, 1.0 );
+    glScalef(scale,scale,scale);
+    glTranslatef(transform_x,transform_y,transform_z);
+
+    glBegin(GL_POLYGON);
+    glColor3f( 1.0, 0.0, 0.0 );
+    glVertex3f(  0.5, -0.5, -0.5 );
+    glColor3f( 0.0, 1.0, 0.0 );
+    glVertex3f(  0.5,  0.5, -0.5 );
+    glColor3f( 0.0, 0.0, 1.0 );
+    glVertex3f( -0.5,  0.5, -0.5 );
+    glColor3f( 1.0, 0.0, 1.0 );
+    glVertex3f( -0.5, -0.5, -0.5 );
+    glEnd();
+
+    glBegin(GL_POLYGON);
+    glColor3f(   1.0,  1.0, 1.0 );
+    glVertex3f(  0.5, -0.5, 0.5 );
+    glVertex3f(  0.5,  0.5, 0.5 );
+    glVertex3f( -0.5,  0.5, 0.5 );
+    glVertex3f( -0.5, -0.5, 0.5 );
+    glEnd();
+
+    glBegin(GL_POLYGON);
+    glColor3f(  1.0,  0.0,  1.0 );
+    glVertex3f( 0.5, -0.5, -0.5 );
+    glVertex3f( 0.5,  0.5, -0.5 );
+    glVertex3f( 0.5,  0.5,  0.5 );
+    glVertex3f( 0.5, -0.5,  0.5 );
+    glEnd();
+
+    glBegin(GL_POLYGON);
+    glColor3f(   0.0,  1.0,  0.0 );
+    glVertex3f( -0.5, -0.5,  0.5 );
+    glVertex3f( -0.5,  0.5,  0.5 );
+    glVertex3f( -0.5,  0.5, -0.5 );
+    glVertex3f( -0.5, -0.5, -0.5 );
+    glEnd();
+
+    glBegin(GL_POLYGON);
+    glColor3f(   0.0,  0.0,  1.0 );
+    glVertex3f(  0.5,  0.5,  0.5 );
+    glVertex3f(  0.5,  0.5, -0.5 );
+    glVertex3f( -0.5,  0.5, -0.5 );
+    glVertex3f( -0.5,  0.5,  0.5 );
+    glEnd();
+
+    glBegin(GL_POLYGON);
+    glColor3f(   1.0,  0.0,  0.0 );
+    glVertex3f(  0.5, -0.5, -0.5 );
+    glVertex3f(  0.5, -0.5,  0.5 );
+    glVertex3f( -0.5, -0.5,  0.5 );
+    glVertex3f( -0.5, -0.5, -0.5 );
+    glEnd();
+
+    graficarLineas();
+    glFlush();
+    this->makeCurrent();
+}
+
+void MyOpenGL::graficarLineas()
+{
+    glBegin(GL_LINES);
+    glColor3f(1,0,0);
+    glVertex3f(0,0,0);
+    glVertex3f(20,0,0);
+
+    glColor3f(1,1,0);
+    glVertex3f(0,0,0);
+    glVertex3f(0,20,0);
+
+    glColor3f(0,1,1);
+    glVertex3f(0,0,0);
+    glVertex3f(0,0,20);
+    glEnd();
+}
+
+void MyOpenGL::mousePressEvent(QMouseEvent *event)
+{
+    currentButton = event->button();
+    pressPos_x = event->pos().x();
+    pressPos_y = event->pos().y();
+//    qDebug()<<pressPos_x<<" "<<pressPos_y<<endl;
+}
+
+void MyOpenGL::mouseMoveEvent(QMouseEvent *event)
+{
+//    qDebug()<<event->button()<<endl;
+    if(currentButton == Qt::MidButton){
+        transform_x += (currentPos_x-pressPos_x)/20000;
+        transform_y += (currentPos_y-pressPos_y)/20000;
+    }else{
+        currentPos_x = event->pos().x();
+        currentPos_y = event->pos().y();
+        //    qDebug()<<currentPos_x<<" "<<currentPos_y<<endl;
+        // rotate the frame according to mouse Postion
+        rotate_x+=(-currentPos_y+pressPos_y)/100;
+        rotate_y+=(-currentPos_x+pressPos_x)/100;
+        //    rotate_z=currentPos_x-pressPos_x;
+    }
+    update();
+}
+
+void MyOpenGL::wheelEvent(QWheelEvent *event)
+{
+    scale += (event->delta()/1500.0 + scale<0)?0:event->delta()/1500.0;
+    update();
 }
 
 void MainWindow::updateMeasurementActions()
@@ -393,12 +526,24 @@ QMainWindow *MainWindow::createTraceWindow(QString title)
     if (title.isNull()) {
         title = "Trace";
     }
+
+    ui->mainTabs->setTabPosition(QTabWidget::North);
+    ui->mainTabs->setTabShape(QTabWidget::Triangular);
+    ui->mainTabs->setMovable(true);
+
     QMainWindow *mm = createTab(title);
     traceWindow = new TraceWindow(mm, backend());
     mm->setCentralWidget(traceWindow);
-    addLogWidget(mm);
 
-    ui->mainTabs->setCurrentWidget(mm);
+//    ui->mainTabs->setCurrentWidget(mm);
+
+    QMainWindow *GLwindow = new QMainWindow(this);
+    openGLWindow = new MyOpenGL(GLwindow);
+    GLwindow->setCentralWidget(openGLWindow);
+    ui->mainTabs->addTab(GLwindow,"3D View");
+    ui->mainTabs->setCurrentWidget(GLwindow);
+
+    addLogWidget(GLwindow);
     return mm;
 }
 
@@ -546,7 +691,6 @@ void MainWindow::saveTraceToFile()
     }
 
 }
-
 
 void MainWindow::on_action_TraceClear_triggered()
 {

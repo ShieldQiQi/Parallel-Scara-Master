@@ -27,6 +27,9 @@
 #include <window/GraphWindow/GraphWindow.h>
 #include <window/CmdStatusPanel/CmdStatusPanel.h>
 #include <window/TraceWindow/TraceWindow.h>
+#include <QOpenGLWidget>
+#include <QOpenGLFunctions>
+#include <QDebug>
 
 QT_BEGIN_NAMESPACE
 class QAction;
@@ -45,6 +48,44 @@ class MainWindow;
 class ConfigurableWidget;
 class SetupDialog;
 
+class MyOpenGL : public QOpenGLWidget, protected QOpenGLFunctions
+{
+    Q_OBJECT
+
+public:
+    explicit MyOpenGL(QMainWindow *parent = 0) : QOpenGLWidget(parent){    };
+    ~MyOpenGL(){};
+
+protected:
+    void initializeGL() Q_DECL_OVERRIDE;
+    void resizeGL(int w, int h)Q_DECL_OVERRIDE;
+    void paintGL()Q_DECL_OVERRIDE;
+    void graficarLineas();
+
+private:
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void wheelEvent(QWheelEvent *event) override;
+
+public:
+    double rotate_x=0;
+    double rotate_y=0;
+    double rotate_z=0;
+
+    double scale = 1;
+
+    double pressPos_x = 0;
+    double pressPos_y = 0;
+    double currentPos_x = 0;
+    double currentPos_y = 0;
+
+    double transform_x = 0;
+    double transform_y = 0;
+    double transform_z = 0;
+
+    Qt::MouseButton currentButton;
+};
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -57,6 +98,8 @@ public:
     GraphWindow *graphWindow;
     CmdStatusPanelWindow *cmdStatusPanelWindow;
     TraceWindow *traceWindow;
+
+    MyOpenGL *openGLWindow;
 
 protected:
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;

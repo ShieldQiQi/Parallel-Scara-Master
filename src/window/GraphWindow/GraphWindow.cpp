@@ -83,7 +83,7 @@ GraphWindow::GraphWindow(QWidget *parent, Backend &backend) :
     customPlot->graph(2)->setLineStyle(QCPGraph::lsNone);
     customPlot->graph(2)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDiamond, 4));
     customPlot->graph(2)->setName("極楽浄土");
-    file = new QFile("E:/FOC-Analyzer-CANOPEN/src/assets/pointXY.csv");
+    file = new QFile("E:/ROBOTICS AND CONTROL/09 Parallel Scara/Parallel-Scara-Master-CANOPEN/src/assets/pointXY.csv");
     textStream = new QTextStream;
     if(!file->open(QFile::ReadOnly | QFile::Text)){
         QMessageBox::information(this,"","Can not load the csv file",NULL);

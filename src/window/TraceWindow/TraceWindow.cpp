@@ -69,6 +69,9 @@ TraceWindow::TraceWindow(QWidget *parent, Backend &backend) :
 
     connect(_linearTraceViewModel, SIGNAL(rowsInserted(QModelIndex,int,int)), this, SLOT(rowsInserted(QModelIndex,int,int)));
     connect(_linearTraceViewModel, SIGNAL(sendCANMsg(QString)), this, SLOT(passCANMsg(QString)));
+
+    ui->cbAggregated->setCheckState(Qt::Unchecked);
+    ui->cbAutoScroll->setCheckState(Qt::Checked);
 }
 
 TraceWindow::~TraceWindow()
