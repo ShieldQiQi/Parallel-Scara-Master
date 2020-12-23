@@ -22,10 +22,16 @@ macx:OBJECTS_DIR = ../build/o/mac
 
 
 SOURCES += main.cpp\
+    camera.cpp \
     mainwindow.cpp \
+    mesh.cpp \
+    model.cpp \
     qcustomplot/qcustomplot.cpp \
 
 HEADERS  += mainwindow.h \
+    camera.h \
+    mesh.h \
+    model.h \
     qcustomplot/qcustomplot.h \
 
 FORMS    += mainwindow.ui
@@ -52,3 +58,9 @@ win32:include($$PWD/driver/CandleApiDriver/CandleApiDriver.pri)
 DISTFILES +=
 
 LIBS += -lOpengl32
+
+win32:CONFIG(release, debug|release): LIBS += -LG:/Assimp/assimp-4.1.0/lib/ -llibassimp.dll
+else:win32:CONFIG(debug, debug|release): LIBS += -LG:/Assimp/assimp-4.1.0/lib/ -llibassimp.dlld
+
+INCLUDEPATH += G:/Assimp/assimp-4.1.0/include
+DEPENDPATH += G:/Assimp/assimp-4.1.0/include

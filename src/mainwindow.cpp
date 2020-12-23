@@ -137,11 +137,32 @@ MainWindow::~MainWindow()
     delete openGLWindow;
 }
 
+MyOpenGL::MyOpenGL(QMainWindow *parent) : QOpenGLWidget(parent), camera(this)
+{
+    timer.setInterval(18);
+    connect(&timer,&QTimer::timeout,this,static_cast<void (MyOpenGL::*)()>(&MyOpenGL::update));
+    timer.start();
+
+    QSurfaceFormat format;
+    format.setSamples(50);
+    setFormat(format);
+}
+
 void MyOpenGL::initializeGL()
 {
     initializeOpenGLFunctions();
 
+    shaderProgram.addShaderFromSourceFile(QOpenGLShader::Vertex,":/assets/model.vert");
+    shaderProgram.addShaderFromSourceFile(QOpenGLShader::Fragment,":/assets/model.frag");
+    shaderProgram.link();
+    model=Model::createModel(
+//                "E:/ROBOTICS AND CONTROL/09 Parallel Scara/Parallel-Scara-Master-CANOPEN/src/assets/Genji/Genji.FBX",
+                "E:/ROBOTICS AND CONTROL/09 Parallel Scara/Parallel-Scara-Master-CANOPEN/src/assets/ParallelScara/Parallel_Scara.fbx",
+                context(),&shaderProgram);
+
     glEnable(GL_DEPTH_TEST);
+
+    camera.init();
 }
 
 void MyOpenGL::resizeGL(int w, int h)
@@ -151,74 +172,20 @@ void MyOpenGL::resizeGL(int w, int h)
 
 void MyOpenGL::paintGL()
 {
-//    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-    glClearColor(0.3,0.3,0.3,0.5);
-    glDepthFunc(GL_LESS);
-    glEnable(GL_DEPTH_TEST);
-    glShadeModel(GL_SMOOTH);
-
-    glLoadIdentity();
-
-    glRotatef( rotate_x, 1.0, 0.0, 0.0 );
-    glRotatef( rotate_y, 0.0, 1.0, 0.0 );
-    glRotatef( rotate_z, 0.0, 0.0, 1.0 );
-    glScalef(scale,scale,scale);
-    glTranslatef(transform_x,transform_y,transform_z);
-
-    glBegin(GL_POLYGON);
-    glColor3f( 1.0, 0.0, 0.0 );
-    glVertex3f(  0.5, -0.5, -0.5 );
-    glColor3f( 0.0, 1.0, 0.0 );
-    glVertex3f(  0.5,  0.5, -0.5 );
-    glColor3f( 0.0, 0.0, 1.0 );
-    glVertex3f( -0.5,  0.5, -0.5 );
-    glColor3f( 1.0, 0.0, 1.0 );
-    glVertex3f( -0.5, -0.5, -0.5 );
-    glEnd();
-
-    glBegin(GL_POLYGON);
-    glColor3f(   1.0,  1.0, 1.0 );
-    glVertex3f(  0.5, -0.5, 0.5 );
-    glVertex3f(  0.5,  0.5, 0.5 );
-    glVertex3f( -0.5,  0.5, 0.5 );
-    glVertex3f( -0.5, -0.5, 0.5 );
-    glEnd();
-
-    glBegin(GL_POLYGON);
-    glColor3f(  1.0,  0.0,  1.0 );
-    glVertex3f( 0.5, -0.5, -0.5 );
-    glVertex3f( 0.5,  0.5, -0.5 );
-    glVertex3f( 0.5,  0.5,  0.5 );
-    glVertex3f( 0.5, -0.5,  0.5 );
-    glEnd();
-
-    glBegin(GL_POLYGON);
-    glColor3f(   0.0,  1.0,  0.0 );
-    glVertex3f( -0.5, -0.5,  0.5 );
-    glVertex3f( -0.5,  0.5,  0.5 );
-    glVertex3f( -0.5,  0.5, -0.5 );
-    glVertex3f( -0.5, -0.5, -0.5 );
-    glEnd();
-
-    glBegin(GL_POLYGON);
-    glColor3f(   0.0,  0.0,  1.0 );
-    glVertex3f(  0.5,  0.5,  0.5 );
-    glVertex3f(  0.5,  0.5, -0.5 );
-    glVertex3f( -0.5,  0.5, -0.5 );
-    glVertex3f( -0.5,  0.5,  0.5 );
-    glEnd();
-
-    glBegin(GL_POLYGON);
-    glColor3f(   1.0,  0.0,  0.0 );
-    glVertex3f(  0.5, -0.5, -0.5 );
-    glVertex3f(  0.5, -0.5,  0.5 );
-    glVertex3f( -0.5, -0.5,  0.5 );
-    glVertex3f( -0.5, -0.5, -0.5 );
-    glEnd();
+    glClearColor(0.3,0.3,0.3,1);
+    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+    QMatrix4x4 projection;
+    projection.perspective(45.0f,width()/(float)height(),0.1f,500.0f);
+    shaderProgram.setUniformValue("projection",projection);
+    shaderProgram.setUniformValue("view",camera.getView());
+    model->draw();
 
     graficarLineas();
-    glFlush();
-    this->makeCurrent();
+}
+
+bool MyOpenGL::event(QEvent* e){
+    camera.handle(e);
+    return QWidget::event(e);
 }
 
 void MyOpenGL::graficarLineas()
@@ -236,38 +203,6 @@ void MyOpenGL::graficarLineas()
     glVertex3f(0,0,0);
     glVertex3f(0,0,20);
     glEnd();
-}
-
-void MyOpenGL::mousePressEvent(QMouseEvent *event)
-{
-    currentButton = event->button();
-    pressPos_x = event->pos().x();
-    pressPos_y = event->pos().y();
-//    qDebug()<<pressPos_x<<" "<<pressPos_y<<endl;
-}
-
-void MyOpenGL::mouseMoveEvent(QMouseEvent *event)
-{
-//    qDebug()<<event->button()<<endl;
-    if(currentButton == Qt::MidButton){
-        transform_x += (currentPos_x-pressPos_x)/20000;
-        transform_y += (currentPos_y-pressPos_y)/20000;
-    }else{
-        currentPos_x = event->pos().x();
-        currentPos_y = event->pos().y();
-        //    qDebug()<<currentPos_x<<" "<<currentPos_y<<endl;
-        // rotate the frame according to mouse Postion
-        rotate_x+=(-currentPos_y+pressPos_y)/100;
-        rotate_y+=(-currentPos_x+pressPos_x)/100;
-        //    rotate_z=currentPos_x-pressPos_x;
-    }
-    update();
-}
-
-void MyOpenGL::wheelEvent(QWheelEvent *event)
-{
-    scale += (event->delta()/1500.0 + scale<0)?0:event->delta()/1500.0;
-    update();
 }
 
 void MainWindow::updateMeasurementActions()
@@ -486,7 +421,7 @@ void MainWindow::setWorkspaceModified(bool modified)
 {
     _workspaceModified = modified;
 
-    QString title = _baseWindowTitle + " specific for foc analyzer";
+    QString title = _baseWindowTitle;
     if (!_workspaceFileName.isEmpty()) {
         QFileInfo fi(_workspaceFileName);
         title += " - " + fi.fileName();
@@ -544,6 +479,7 @@ QMainWindow *MainWindow::createTraceWindow(QString title)
     ui->mainTabs->setCurrentWidget(GLwindow);
 
     addLogWidget(GLwindow);
+
     return mm;
 }
 
@@ -634,9 +570,9 @@ bool MainWindow::showSetupDialog()
 void MainWindow::showAboutDialog()
 {
     QMessageBox::about(this,
-       "About cangaroo specific for foc analyzer",
-       "cangaroo specific for foc analyzer\n"
-       "open source can bus analyzer specific for foc analyzer\n"
+       "About parallel scara robot master",
+       "parallel scara robot master\n"
+       "open source parallel scara robot master cmd panel\n"
        "\n"
        "version 0.2.3/0.0.1\n"
        "\n"

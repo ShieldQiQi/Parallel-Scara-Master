@@ -1,5 +1,8 @@
 ../build/o/win32/main.o
+../build/o/win32/camera.o
 ../build/o/win32/mainwindow.o
+../build/o/win32/mesh.o
+../build/o/win32/model.o
 ../build/o/win32/qcustomplot.o
 ../build/o/win32/Backend.o
 ../build/o/win32/CanMessage.o

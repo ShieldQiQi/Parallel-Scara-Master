@@ -13,5 +13,8 @@
         <file>assets/needle_shadow.png</file>
         <file>assets/overlay.png</file>
         <file>assets/quit.png</file>
+        <file>assets/model.frag</file>
+        <file>assets/model.vert</file>
+        <file>assets/Parallel_Scara.obj</file>
     </qresource>
 </RCC>

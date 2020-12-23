@@ -29,7 +29,12 @@
 #include <window/TraceWindow/TraceWindow.h>
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions>
+#include <QOpenGLExtraFunctions>
+#include <QOpenGLShaderProgram>
 #include <QDebug>
+#include <mesh.h>
+#include <model.h>
+#include "camera.h"
 
 QT_BEGIN_NAMESPACE
 class QAction;
@@ -53,7 +58,7 @@ class MyOpenGL : public QOpenGLWidget, protected QOpenGLFunctions
     Q_OBJECT
 
 public:
-    explicit MyOpenGL(QMainWindow *parent = 0) : QOpenGLWidget(parent){    };
+    explicit MyOpenGL(QMainWindow *parent = 0);
     ~MyOpenGL(){};
 
 protected:
@@ -61,29 +66,17 @@ protected:
     void resizeGL(int w, int h)Q_DECL_OVERRIDE;
     void paintGL()Q_DECL_OVERRIDE;
     void graficarLineas();
-
-private:
-    void mousePressEvent(QMouseEvent *event) override;
-    void mouseMoveEvent(QMouseEvent *event) override;
-    void wheelEvent(QWheelEvent *event) override;
+    virtual bool event(QEvent *e) override;
 
 public:
-    double rotate_x=0;
-    double rotate_y=0;
-    double rotate_z=0;
 
-    double scale = 1;
+    Model* model;
+    Camera camera;
+    QTimer timer;
 
-    double pressPos_x = 0;
-    double pressPos_y = 0;
-    double currentPos_x = 0;
-    double currentPos_y = 0;
+private:
+    QOpenGLShaderProgram shaderProgram;
 
-    double transform_x = 0;
-    double transform_y = 0;
-    double transform_z = 0;
-
-    Qt::MouseButton currentButton;
 };
 
 class MainWindow : public QMainWindow
